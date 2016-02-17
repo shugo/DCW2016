@@ -28,11 +28,29 @@ module Daru
           obj
         end
       end
+
+      [:&, :|].each do |op|
+        define_method(op) do |other|
+          LogicalOp.new(op, self, other)
+        end
+      end
+    end
+
+    class LogicalOp
+      def initialize(op, left, right)
+        @op = op
+        @left = left
+        @right = right
+      end
+
+      def to_where_arg(df)
+        @left.to_where_arg(df).send(@op, @right.to_where_arg(df))
+      end
     end
 
     refine Symbol do
       [:==, :!=, :<, :<=, :>, :>=].each do |op|
-        define_method op do |other|
+        define_method(op) do |other|
           BinaryOp.new(op, self, other)
         end
       end
